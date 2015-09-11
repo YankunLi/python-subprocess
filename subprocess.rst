@@ -114,6 +114,9 @@ subprocess还可以连接起来多个命令来执行。
 在shell中我们知道，想要连接多个命令可以使用管道。
 
 在subprocess中，可以使用上一个命令执行的输出结果作为下一次执行的输入。例子如下：
+::
+proce1 = subprocess.Popen("cat filename", shell=True, stdout=subprocess.PIPE)
+proce2 = subprocess.Popen("head 2", shell=True, stdin=proce1.stdout, stdout=subprocess.PIPE)
 
 例子中，p2使用了第一次执行命令的结果p1的stdout作为输入数据，然后执行tail命令。
 
