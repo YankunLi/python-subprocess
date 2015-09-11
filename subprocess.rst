@@ -76,9 +76,9 @@ Popen.returncode
     p=subprocess.Popen("ls", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdoutput,erroutput) = p.communicate()  
   
-  p.communicate会一直等到进程退出，并将标准输出和标准错误输出返回，这样就可以得到子进程的输出了。
+p.communicate会一直等到进程退出，并将标准输出和标准错误输出返回，这样就可以得到子进程的输出了。
   
-  上面，标准输出和标准错误输出是分开的，也可以合并起来，只需要将stderr参数设置为subprocess.STDOUT就可以了，这样子::
+上面，标准输出和标准错误输出是分开的，也可以合并起来，只需要将stderr参数设置为subprocess.STDOUT就可以了，这样子::
 
     p=subprocess.Popen("dir", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
     (stdoutput,erroutput) = p.<span>commu</span>nicate()  
@@ -91,8 +91,6 @@ Popen.returncode
         if buff == '' and p.poll() != None:  
             break  
 
-------------------------------------------------------
-
 死锁
 
 但是如果你使用了管道，而又不去处理管道的输出，那么小心点，如果子进程输出数据过多，死锁就会发生了，比如下面的用法::
@@ -101,8 +99,6 @@ Popen.returncode
     p.wait()  
 
 longprint是一个假想的有大量输出的进程，那么在我的xp, Python2.5的环境下，当输出达到4096时，死锁就发生了。当然，如果我们用p.stdout.readline或者p.communicate去清理输出，那么无论输出多少，死锁都是不会发生的。或者我们不使用管道，比如不做重定向，或者重定向到文件，也都是可以避免死锁的。
-
-----------------------------------
 
 subprocess还可以连接起来多个命令来执行。
 
@@ -114,8 +110,6 @@ subprocess还可以连接起来多个命令来执行。
     proce2 = subprocess.Popen("head 2", shell=True, stdin=proce1.stdout, stdout=subprocess.PIPE)
 
 例子中，p2使用了第一次执行命令的结果p1的stdout作为输入数据，然后执行tail命令。
-
-- -------------------
 
 下面是一个更大的例子。用来ping一系列的ip地址，并输出是否这些地址的主机是alive的。代码参考了python unix linux 系统管理指南。::
 
@@ -172,6 +166,5 @@ pingme函数会检测队列中是否有元素。如果有的话，则取出并�
 
 　　Blocks until all items in the queue have been gotten and processed(task_done()).
 
----------------------------------------------
 
 学习Processing模块的时候，遇到了进程的join函数。进程的join函数意思说，等待进程运行结束。与这里的Queue的join有异曲同工之妙啊。processing模块学习的文章在这里
