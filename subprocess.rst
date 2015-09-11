@@ -51,6 +51,7 @@ Popen.stdin，Popen.stdout ，Popen.stderr ，官方文档上这么说：
 stdin, stdout and stderr specify the executed programs’ standard input, standard output and standard error file handles, respectively. Valid values are PIPE, an existing file descriptor (a positive integer), an existing file object, and None.
 
 Popen.pid
+---------
 
 　　获取子进程的进程ID。
 
