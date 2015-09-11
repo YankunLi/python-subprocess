@@ -71,23 +71,19 @@ Popen.returncode
 进程间的通信
 ============
 
-获得进程的输出
+获得进程的输出::
 
-::
-
-  p=subprocess.Popen("ls", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  (stdoutput,erroutput) = p.communicate()  
+    p=subprocess.Popen("ls", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdoutput,erroutput) = p.communicate()  
   
   p.communicate会一直等到进程退出，并将标准输出和标准错误输出返回，这样就可以得到子进程的输出了。
   
-  上面，标准输出和标准错误输出是分开的，也可以合并起来，只需要将stderr参数设置为subprocess.STDOUT就可以了，这样子：
-[python] view plaincopy
+  上面，标准输出和标准错误输出是分开的，也可以合并起来，只需要将stderr参数设置为subprocess.STDOUT就可以了，这样子::
 
     p=subprocess.Popen("dir", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
     (stdoutput,erroutput) = p.<span>commu</span>nicate()  
 
-如果你想一行行处理子进程的输出，也没有问题：
-[python] view plaincopy
+如果你想一行行处理子进程的输出，也没有问题::
 
     p=subprocess.Popen("dir", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
     while True:  
@@ -99,8 +95,7 @@ Popen.returncode
 
 死锁
 
-但是如果你使用了管道，而又不去处理管道的输出，那么小心点，如果子进程输出数据过多，死锁就会发生了，比如下面的用法：
-[python] view plaincopy
+但是如果你使用了管道，而又不去处理管道的输出，那么小心点，如果子进程输出数据过多，死锁就会发生了，比如下面的用法::
 
     p=subprocess.Popen("longprint", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
     p.wait()  
@@ -113,17 +108,16 @@ subprocess还可以连接起来多个命令来执行。
 
 在shell中我们知道，想要连接多个命令可以使用管道。
 
-在subprocess中，可以使用上一个命令执行的输出结果作为下一次执行的输入。例子如下：
-::
-proce1 = subprocess.Popen("cat filename", shell=True, stdout=subprocess.PIPE)
-proce2 = subprocess.Popen("head 2", shell=True, stdin=proce1.stdout, stdout=subprocess.PIPE)
+在subprocess中，可以使用上一个命令执行的输出结果作为下一次执行的输入。例子如下::
+
+    proce1 = subprocess.Popen("cat filename", shell=True, stdout=subprocess.PIPE)
+    proce2 = subprocess.Popen("head 2", shell=True, stdin=proce1.stdout, stdout=subprocess.PIPE)
 
 例子中，p2使用了第一次执行命令的结果p1的stdout作为输入数据，然后执行tail命令。
 
 - -------------------
 
-下面是一个更大的例子。用来ping一系列的ip地址，并输出是否这些地址的主机是alive的。代码参考了python unix linux 系统管理指南。
-[python] view plaincopy
+下面是一个更大的例子。用来ping一系列的ip地址，并输出是否这些地址的主机是alive的。代码参考了python unix linux 系统管理指南。::
 
     #!/usr/bin/env python  
       
@@ -160,7 +154,7 @@ proce2 = subprocess.Popen("head 2", shell=True, stdin=proce1.stdout, stdout=subp
 
 假设说我们用一个线程来处理，那么每个 ping都要等待前一个结束之后再ping其他地址。那么如果有100个地址，一共需要的时间=100*平均时间。
 
-如果使用多个线程，那么最长执行时间的线程就是整个程序运行的总时间。【时间比单个线程节省多了】
+如果使用多个线程，那么最长执行时间的线程就是整个程序运行的总时间。时间比单个线程节省多了.
 
 这里要注意一下Queue模块的学习。
 
@@ -170,9 +164,9 @@ pingme函数的执行是这样的：
 
 pingme函数会检测队列中是否有元素。如果有的话，则取出并执行ping命令。
 
-这个队列是多个线程共享的。所以这里我们不使用列表。【假设在这里我们使用列表，那么需要我们自己来进行同步控制。Queue本身已经通过信号量做了同步控制，节省了我们自己做同步控制的工作=。=】
+这个队列是多个线程共享的。所以这里我们不使用列表。(假设在这里我们使用列表，那么需要我们自己来进行同步控制。Queue本身已经通过信号量做了同步控制，节省了我们自己做同步控制的工作=。=)
 
-代码中q的join函数是阻塞当前线程。下面是e文注释
+代码中q的join函数是阻塞当前线程。下面是e文注释::
 
 　Queue.join()
 
