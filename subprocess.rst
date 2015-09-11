@@ -60,6 +60,7 @@ Popen.returncode
 　　获取进程的返回值。如果进程还没有结束，返回None。
 　　
 　：：
+　
 　   proc = subprocess.Popen("dir", shell=True)
 　   retcode = proc.wait()
 　　
