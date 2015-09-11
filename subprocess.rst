@@ -63,6 +63,118 @@ Popen.returncode
 　
 　   proc = subprocess.Popen("dir", shell=True)
 　   retcode = proc.wait()
+　   
+　   shell参数根据你要执行的命令的情况来决定，上面是dir命令，就一定要shell=True了，p.wait()可以得到命令的返回值。
+
+如果上面写成a=p.wait()，a就是returncode。那么输出a的话，有可能就是0【表示执行成功】。
 　　
 进程间的通信
 ============
+
+获得进程的输出
+
+::
+
+  p=subprocess.Popen("ls", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  (stdoutput,erroutput) = p.communicate()  
+  
+  p.communicate会一直等到进程退出，并将标准输出和标准错误输出返回，这样就可以得到子进程的输出了。
+  
+  上面，标准输出和标准错误输出是分开的，也可以合并起来，只需要将stderr参数设置为subprocess.STDOUT就可以了，这样子：
+[python] view plaincopy
+
+    p=subprocess.Popen("dir", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
+    (stdoutput,erroutput) = p.<span>commu</span>nicate()  
+
+如果你想一行行处理子进程的输出，也没有问题：
+[python] view plaincopy
+
+    p=subprocess.Popen("dir", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
+    while True:  
+        buff = p.stdout.readline()  
+        if buff == '' and p.poll() != None:  
+            break  
+
+------------------------------------------------------
+
+死锁
+
+但是如果你使用了管道，而又不去处理管道的输出，那么小心点，如果子进程输出数据过多，死锁就会发生了，比如下面的用法：
+[python] view plaincopy
+
+    p=subprocess.Popen("longprint", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  
+    p.wait()  
+
+longprint是一个假想的有大量输出的进程，那么在我的xp, Python2.5的环境下，当输出达到4096时，死锁就发生了。当然，如果我们用p.stdout.readline或者p.communicate去清理输出，那么无论输出多少，死锁都是不会发生的。或者我们不使用管道，比如不做重定向，或者重定向到文件，也都是可以避免死锁的。
+
+----------------------------------
+
+subprocess还可以连接起来多个命令来执行。
+
+在shell中我们知道，想要连接多个命令可以使用管道。
+
+在subprocess中，可以使用上一个命令执行的输出结果作为下一次执行的输入。例子如下：
+
+例子中，p2使用了第一次执行命令的结果p1的stdout作为输入数据，然后执行tail命令。
+
+- -------------------
+
+下面是一个更大的例子。用来ping一系列的ip地址，并输出是否这些地址的主机是alive的。代码参考了python unix linux 系统管理指南。
+[python] view plaincopy
+
+    #!/usr/bin/env python  
+      
+    from threading import Thread  
+    import subprocess  
+    from Queue import Queue  
+      
+    num_threads=3  
+    ips=['127.0.0.1','116.56.148.187']  
+    q=Queue()  
+    def pingme(i,queue):  
+        while True:  
+            ip=queue.get()  
+            print 'Thread %s pinging %s' %(i,ip)  
+            ret=subprocess.call('ping -c 1 %s' % ip,shell=True,stdout=open('/dev/null','w'),stderr=subprocess.STDOUT)  
+            if ret==0:  
+                print '%s is alive!' %ip  
+            elif ret==1:  
+                print '%s is down...'%ip  
+            queue.task_done()  
+      
+    #start num_threads threads  
+    for i in range(num_threads):  
+        t=Thread(target=pingme,args=(i,q))  
+        t.setDaemon(True)  
+        t.start()  
+      
+    for ip in ips:  
+        q.put(ip)  
+    print 'main thread waiting...'  
+    q.join();print 'Done'  
+
+在上面代码中使用subprocess的主要好处是，使用多个线程来执行ping命令会节省大量时间。
+
+假设说我们用一个线程来处理，那么每个 ping都要等待前一个结束之后再ping其他地址。那么如果有100个地址，一共需要的时间=100*平均时间。
+
+如果使用多个线程，那么最长执行时间的线程就是整个程序运行的总时间。【时间比单个线程节省多了】
+
+这里要注意一下Queue模块的学习。
+
+pingme函数的执行是这样的：
+
+启动的线程会去执行pingme函数。
+
+pingme函数会检测队列中是否有元素。如果有的话，则取出并执行ping命令。
+
+这个队列是多个线程共享的。所以这里我们不使用列表。【假设在这里我们使用列表，那么需要我们自己来进行同步控制。Queue本身已经通过信号量做了同步控制，节省了我们自己做同步控制的工作=。=】
+
+代码中q的join函数是阻塞当前线程。下面是e文注释
+
+　Queue.join()
+
+　　Blocks until all items in the queue have been gotten and processed(task_done()).
+
+---------------------------------------------
+
+学习Processing模块的时候，遇到了进程的join函数。进程的join函数意思说，等待进程运行结束。与这里的Queue的join有异曲同工之妙啊。processing模块学习的文章在这里
